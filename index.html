@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rushed Chance Calculator</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#7dd3fc;--muted:#94a3b8}
+    body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:linear-gradient(180deg,#071020 0%, #071827 100%); color:#e6eef6; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:22px; border-radius:14px; box-shadow:0 8px 30px rgba(2,6,23,0.7); width:100%; max-width:720px}
+    h1{font-size:20px;margin:0 0 8px}
+    p.lead{color:var(--muted); margin:0 0 18px}
+    label{display:block;margin:12px 0 6px;color:var(--muted);font-size:13px}
+    input[type=number]{width:100%; padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04); background:transparent;color:inherit}
+    .result{margin-top:18px;padding:16px;border-radius:10px;background:linear-gradient(180deg, rgba(125,211,252,0.03), rgba(125,211,252,0.01)); display:flex;justify-content:space-between;align-items:center}
+    .big{font-weight:700;font-size:28px}
+    .small{color:var(--muted);font-size:13px}
+    footer{margin-top:14px;color:var(--muted);font-size:13px}
+    code{background:rgba(255,255,255,0.03);padding:6px;border-radius:6px;font-family:monospace}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Rushed Chance Calculator</h1>
+    <p class="lead">Enter your <strong>Wit</strong> stat to find out your percentage chance of being rushed (Ie.Totally Cooked) depending your Wit.</p>
+
+    <label for="wiz">Wit</label>
+    <input id="wiz" type="number" step="1" min="0" value="10" />
+
+    <div class="result" id="resultBox">
+      <div>
+        <div class="small">How much i'm cooked?</div>
+        <div class="big" id="chanceText">-</div>
+      </div>
+      <div style="text-align:right">
+        <div class="small">Formula</div>
+        <div class="small" id="formula">(6.5 / log10(0.1 * wiz + 1))² %</div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Notes:
+        <ul>
+          <li>Formula used: <code>RushedChance = (6.5 / log10(0.1*WizStat + 1))²</code> (result expressed as percentage).</li>
+          <li>If <code>log10(0.1*wiz + 1) = 0</code> (e.g. wiz = 0), the result is undefined; please enter wit &gt; 0.</li>
+          <li>The displayed percentage is capped at 100% since it cannot exceed that value.</li>
+        </ul>
+      </p>
+    </footer>
+  </main>
+
+  <script>
+    const wizInput = document.getElementById('wiz');
+    const chanceText = document.getElementById('chanceText');
+
+    function computeChance(wiz){
+      const w = Number(wiz);
+      const denom = Math.log10(0.1 * w + 1);
+      if (!isFinite(denom) || denom === 0) {
+        return { ok: false, message: 'Undefined — log10(0.1*wiz + 1) = 0. Choose wiz > 0.' };
+      }
+      const raw = Math.pow(6.5 / denom, 2);
+      const capped = Math.min(raw, 100);
+      return { ok: true, raw, capped };
+    }
+
+    function updateAll(){
+      const wiz = wizInput.value;
+      const out = computeChance(wiz);
+      if (!out.ok) {
+        chanceText.textContent = out.message;
+      } else {
+        chanceText.textContent = out.capped.toFixed(2) + ' %' + (out.raw > 100 ? ' (capped at 100%, raw: ' + out.raw.toFixed(2) + ')' : '');
+      }
+    }
+
+    wizInput.addEventListener('input', updateAll);
+    updateAll();
+  </script>
+</body>
+</html>
